@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using firstApp.Interfaces;
-using firstApp.Sources;
+using firstApp.SourceBuilder.Interfaces;
+using firstApp.Readers;
+using firstApp.SourceBuilder;
 
 namespace firstApp
 {
@@ -10,12 +11,13 @@ namespace firstApp
     {
         static void Main(string[] args)
         {
-            Dictionary<string, ISource> settings = new Dictionary<string, ISource>() {
-                { "File", new FileSource() },
-                { "Srvr", new DataBaseSource() }
+            Dictionary<string, ISourceBuilder> settings = new Dictionary<string, ISourceBuilder>() {
+                { "File", new FileSourceBuilder() },
+                { "Srvr", new DataBaseSourceBuilder() }
             };
 
-            
+            Reader reader = new Reader("data.txt", settings);
+            reader.getData();
         }
     }
 }
