@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using firstApp.Model.Interfaces;
 using firstApp.SourceBuilder.Interfaces;
-using firstApp.Readers;
 using firstApp.SourceBuilder;
+using firstApp.Readers;
 
 namespace firstApp
 {
@@ -15,9 +16,13 @@ namespace firstApp
                 { "File", new FileSourceBuilder() },
                 { "Srvr", new DataBaseSourceBuilder() }
             };
-
+ 
             Reader reader = new Reader("data.txt", settings);
-            reader.getData();
+            List<ISource> list = reader.getData();
+
+            foreach (ISource source in list) {
+                Console.WriteLine(source);
+            }
         }
     }
 }

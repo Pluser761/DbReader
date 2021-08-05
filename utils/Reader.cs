@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Collections.Generic;
 
 using firstApp.Model.Interfaces;
@@ -11,9 +10,11 @@ namespace firstApp.Readers {
     class Reader {
         private string filePath;
         private StreamReader sr;
-        private List<ISource> result;
         private Dictionary<string, ISourceBuilder> settings;
+        private List<ISource> result;
         private string tempLine;
+        private string tempName;
+        private Dictionary<string, string> tempParams;
 
         public Reader(string filePath, Dictionary<string, ISourceBuilder> settings) {
             this.filePath = filePath;
@@ -21,38 +22,29 @@ namespace firstApp.Readers {
         }
 
         public List<ISource> getData() {
-            string name = "";
-            Dictionary<string, string> currentParams = new Dictionary<string, string>();
+            this.result = new List<ISource>();
+
+            this.tempParams = new Dictionary<string, string>();
             this.sr = new StreamReader(this.filePath);
             this.tempLine = sr.ReadLine();
             while (this.tempLine != null)
             {
                 if (this.tempLine != "") {
-                    if (currentParams.ContainsKey("Connect")) {
-                        string[] connectSettings = currentParams["Connect"].Split('=');
-                        ISourceBuilder sourceBuilder;
-                        if (this.settings.ContainsKey(connectSettings[0])) {
-                            sourceBuilder = this.settings[connectSettings[0]];
-                            ISource source = sourceBuilder.build(name, currentParams);
-                        }
-                    }
-                    currentParams = new Dictionary<string, string>();
+                    this.callBuilder();
                 }
                 if (this.tempLine[0] == '[' && this.tempLine[this.tempLine.Length - 1] == ']') {
                     this.tempLine = this.tempLine.Substring(1, this.tempLine.Length - 2);
-                    name = this.tempLine;
+                    this.tempName = this.tempLine;
                 }
                 else {
-                    this.getParams(currentParams);
+                    this.getParams(this.tempParams);
                 }
                 this.tempLine = sr.ReadLine();
             }
+            this.callBuilder();
             sr.Close();
 
-
-
-
-            return null;
+            return this.result;
         }
 
         private void getParams(Dictionary<string, string> additionalParams) {
@@ -62,6 +54,26 @@ namespace firstApp.Readers {
                 additionalParams.Add(spl[0], spl[1]);
                 this.tempLine = sr.ReadLine();
             }
+        }
+
+        private ISource callBuilder() {
+            ISource source = null;
+            if (this.tempParams.ContainsKey("Connect")) {
+                string[] connectSettings = this.tempParams["Connect"].Split('=');
+                ISourceBuilder sourceBuilder;
+                if (this.settings.ContainsKey(connectSettings[0])) {
+                    sourceBuilder = this.settings[connectSettings[0]];
+                    source = sourceBuilder.build(this.tempName, this.tempParams);
+                    if (source != null) {
+                        this.result.Add(source);
+                    }
+                    else {
+                        Console.WriteLine("Warning! Can't find \'Connect\' parameter, skipping");
+                    }
+                }
+            }
+            this.tempParams = new Dictionary<string, string>();
+            return source;
         }
 }
 }
