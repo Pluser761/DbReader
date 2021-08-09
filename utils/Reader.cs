@@ -1,79 +1,50 @@
+using System.Collections.Specialized;
 using System;
 using System.IO;
 using System.Collections.Generic;
 
 using firstApp.Model.Interfaces;
 using firstApp.SourceBuilder.Interfaces;
-
+using firstApp.Parser;
+using firstApp.Parser.Interfaces;
 
 namespace firstApp.Readers {
     class Reader {
-        private string filePath;
-        private StreamReader sr;
-        private Dictionary<string, ISourceBuilder> settings;
-        private List<ISource> result;
-        private string tempLine;
-        private string tempName;
-        private Dictionary<string, string> tempParams;
+        private StreamReader streamReader;
+        private Dictionary<Predicate<RawData>, ISourceBuilder> settings;
+        private IParser parser;
 
-        public Reader(string filePath, Dictionary<string, ISourceBuilder> settings) {
-            this.filePath = filePath;
+        public Reader(StreamReader streamReader, Dictionary<Predicate<RawData>, ISourceBuilder> settings, IParser parser) {
+            this.streamReader = streamReader;
             this.settings = settings;
+            this.parser = parser;
+            this.parser.StreamReader = streamReader;
         }
 
         public List<ISource> getData() {
-            this.result = new List<ISource>();
-
-            this.tempParams = new Dictionary<string, string>();
-            this.sr = new StreamReader(this.filePath);
-            this.tempLine = sr.ReadLine();
-            while (this.tempLine != null)
-            {
-                if (this.tempLine != "") {
-                    this.callBuilder();
-                }
-                if (this.tempLine[0] == '[' && this.tempLine[this.tempLine.Length - 1] == ']') {
-                    this.tempLine = this.tempLine.Substring(1, this.tempLine.Length - 2);
-                    this.tempName = this.tempLine;
-                }
-                else {
-                    this.getParams(this.tempParams);
-                }
-                this.tempLine = sr.ReadLine();
-            }
-            this.callBuilder();
-            sr.Close();
-
-            return this.result;
-        }
-
-        private void getParams(Dictionary<string, string> additionalParams) {
-            while (this.tempLine != "" && this.tempLine != null)
-            {
-                string[] spl = this.tempLine.Split('=', 2);
-                additionalParams.Add(spl[0], spl[1]);
-                this.tempLine = sr.ReadLine();
-            }
-        }
-
-        private ISource callBuilder() {
+            List<ISource> result = new List<ISource>();
+            List<RawData> rawData = this.parser.getData();
             ISource source = null;
-            if (this.tempParams.ContainsKey("Connect")) {
-                string[] connectSettings = this.tempParams["Connect"].Split('=');
-                ISourceBuilder sourceBuilder;
-                if (this.settings.ContainsKey(connectSettings[0])) {
-                    sourceBuilder = this.settings[connectSettings[0]];
-                    source = sourceBuilder.build(this.tempName, this.tempParams);
-                    if (source != null) {
-                        this.result.Add(source);
-                    }
-                    else {
-                        Console.WriteLine("Warning! Can't find \'Connect\' parameter, skipping");
-                    }
+            
+            foreach (RawData data in rawData) {
+                source = this.callBuilder(data);
+                if (source != null) {
+                    result.Add(source);
+                    source = null;
                 }
             }
-            this.tempParams = new Dictionary<string, string>();
-            return source;
+
+            return result;
+        }
+
+        private ISource callBuilder(RawData data) {
+            foreach (KeyValuePair<Predicate<RawData>, ISourceBuilder> setting in this.settings) {
+                if (setting.Key(data)) {
+                    return setting.Value.build(data.Name, data.Parameters);
+                }
+            }
+            Console.WriteLine("Predicate's not found.");
+            return null;
         }
 }
 }

@@ -1,28 +1,43 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 
 using firstApp.Model.Interfaces;
 using firstApp.SourceBuilder.Interfaces;
 using firstApp.SourceBuilder;
 using firstApp.Readers;
+using firstApp.Writers;
 
-namespace firstApp
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            Dictionary<string, ISourceBuilder> settings = new Dictionary<string, ISourceBuilder>() {
-                { "File", new FileSourceBuilder() },
-                { "Srvr", new DataBaseSourceBuilder() }
+using firstApp.Parser;
+
+namespace firstApp {
+    class Program {
+        static void Main(string[] args) {
+            Dictionary<Predicate<RawData>, ISourceBuilder> settings = new Dictionary<Predicate<RawData>, ISourceBuilder>() {
+                { delegate (RawData data) {
+                    if (data.Parameters.ContainsKey("Connect")) {
+                        if (data.Parameters["Connect"].Contains("File")) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }, new FileSourceBuilder() },
+                { delegate (RawData data) {
+                    if (data.Parameters.ContainsKey("Connect")) {
+                        if (data.Parameters["Connect"].Contains("Srvr")) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }, new DataBaseSourceBuilder() }
             };
  
-            Reader reader = new Reader("data.txt", settings);
+            Reader reader = new Reader(new StreamReader("data.txt"), settings, new MyParser());
             List<ISource> list = reader.getData();
 
-            foreach (ISource source in list) {
-                Console.WriteLine(source);
-            }
+            Writer writer = new Writer();
+            writer.write(list);
         }
+
     }
 }

@@ -13,3 +13,12 @@ External=1
 
 [ООО &quot;Сити&quot;]
 Connect=Srvr="host166";Ref="635445_base23";
+
+[neXT]
+Connect=Srvr="host371:1741";
+ID=e74bf314-e943-4830-bd93-36aba8c5a66d
+External=1
+
+[additional]
+Connect=Srvr="host1122:333";Ref="123";
+param-param=param

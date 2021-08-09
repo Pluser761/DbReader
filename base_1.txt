@@ -1,0 +1,2 @@
+[МХМ]
+Connect=File="s:\usersdata\643343\МХТ";

@@ -21,9 +21,17 @@ namespace firstApp.Model {
             get => _base_name;
             set => _base_name = value;
         }
+        public override bool IsGood {
+            get {
+                if (_base_name == "" || _host == "") {
+                    return false;
+                }
+                return true;
+            }
+        }
         
         public DataBaseSource(string name) : base(name) {
-
+            
         }
 
         public override string ToString() {
