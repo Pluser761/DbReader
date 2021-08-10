@@ -1,6 +1,3 @@
-using firstApp.Model;
-using firstApp.Model.Interfaces;
-
 namespace firstApp.Model {
     class DataBaseSource : BaseSource {
         private string _host;

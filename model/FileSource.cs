@@ -1,8 +1,3 @@
-using System;
-
-using firstApp.Model;
-using firstApp.Model.Interfaces;
-
 namespace firstApp.Model {
     class FileSource : BaseSource {
         private string _file;

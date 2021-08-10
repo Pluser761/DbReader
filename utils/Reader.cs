@@ -1,12 +1,11 @@
-using System.Collections.Specialized;
 using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 
 using firstApp.Model.Interfaces;
-using firstApp.SourceBuilder.Interfaces;
 using firstApp.Parser;
 using firstApp.Parser.Interfaces;
+using firstApp.SourceBuilder.Interfaces;
 
 namespace firstApp.Readers {
     class Reader {
@@ -40,7 +39,7 @@ namespace firstApp.Readers {
         private ISource callBuilder(RawData data) {
             foreach (KeyValuePair<Predicate<RawData>, ISourceBuilder> setting in this.settings) {
                 if (setting.Key(data)) {
-                    return setting.Value.build(data.Name, data.Parameters);
+                    return setting.Value.build(data);
                 }
             }
             Console.WriteLine("Predicate's not found.");

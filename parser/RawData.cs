@@ -1,9 +1,4 @@
-using System.Security.Cryptography.X509Certificates;
-using System.Reflection.Metadata;
-using System;
 using System.Collections.Generic;
-
-using firstApp.SourceBuilder.Interfaces;
 
 namespace firstApp.Parser {
     class RawData {
